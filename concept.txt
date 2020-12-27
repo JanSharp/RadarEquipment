@@ -23,3 +23,11 @@ Spidertrons
 TODO: test how follow offsets for spidertrons even work
 they don't perfectly move to the follow_offset,
 but it seems to work within like 8 tiles of inaccuracy
+
+spidertrons with follow offsets, or spidertorns in genral, are way too inaccurate.
+they accelerate towards the traget, and once they've reached it they slow down again,
+or something around those lines
+anyway, with too much speed they tend to overshoot their target, causing them to reverse,
+but miss again so it's a long period of bouncing back and forth.
+and since the player can teleport, or move really quickly because of trains, and trains
+can also have equipment, this simply won't work.
