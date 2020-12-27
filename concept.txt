@@ -1,0 +1,25 @@
+
+Equipment for equipment grids
+- increase radar range of the owner
+- consume power
+- only active when powered
+
+Other stuff
+- item
+- recipe
+- technology
+
+The range can be extended using one of the following
+
+Radars
+- invisible
+- teleported using control scripting
+
+Spidertrons
+- invisible
+- positioned using following offsets
+- basically infinite speed
+
+TODO: test how follow offsets for spidertrons even work
+they don't perfectly move to the follow_offset,
+but it seems to work within like 8 tiles of inaccuracy
