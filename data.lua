@@ -1,10 +1,15 @@
 
+local ranges = require("range-utils").ranges
+
+local data = data
+local next = next
+
 local empty_png = "__core__/graphics/empty.png"
 
 local function create_radar(range)
   return {
     type = "radar",
-    name = "RadarEquipment-radar",
+    name = "RadarEquipment-radar-"..range,
 
     icon = empty_png,
     icon_size = 1,
@@ -47,6 +52,44 @@ local function create_radar(range)
   }
 end
 
+local radar_count = 0
+local radars = {}
+for range in next, ranges do
+  radar_count = radar_count + 1
+  radars[radar_count] = create_radar(range)
+end
+data:extend(radars)
+
 data:extend{
-  create_radar(0),
+  {
+    type = "item",
+    name = "RadarEquipment-portable-radar",
+
+    icon = empty_png,
+    icon_size = 1,
+    stack_size = 20,
+    placed_as_equipment_result = "RadarEquipment-portable-radar",
+  },
+  {
+    type = "movement-bonus-equipment",
+    name = "RadarEquipment-portable-radar",
+
+    categories = {"armor"},
+    energy_source = {
+      type = "void",
+      usage_priority = "secondary-input",
+    },
+    shape = {
+      type = "full",
+      width = 2,
+      height = 2,
+    },
+    sprite = {
+      filename = empty_png,
+      size = 1,
+    },
+
+    energy_consumption = "40kW",
+    movement_bonus = 0,
+  },
 }
