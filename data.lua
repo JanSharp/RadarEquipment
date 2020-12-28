@@ -6,10 +6,10 @@ local next = next
 
 local empty_png = "__core__/graphics/empty.png"
 
-local function create_radar(range)
+local function create_radar(radar_range, name_postfix)
   return {
     type = "radar",
-    name = "RadarEquipment-radar-"..range,
+    name = "RadarEquipment-radar-"..name_postfix,
 
     icon = empty_png,
     icon_size = 1,
@@ -41,8 +41,8 @@ local function create_radar(range)
     energy_per_sector = "1J",
     energy_source = {type = "void"},
     energy_usage = "1W",
-    max_distance_of_nearby_sector_revealed = range,
-    max_distance_of_sector_revealed = range,
+    max_distance_of_nearby_sector_revealed = radar_range,
+    max_distance_of_sector_revealed = radar_range,
     pictures = {
       direction_count = 1,
       filename = empty_png,
@@ -54,9 +54,9 @@ end
 
 local radar_count = 0
 local radars = {}
-for range in next, ranges do
+for radar_range, chunk_range in next, ranges do
   radar_count = radar_count + 1
-  radars[radar_count] = create_radar(range)
+  radars[radar_count] = create_radar(radar_range, tostring(chunk_range))
 end
 data:extend(radars)
 
