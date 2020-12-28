@@ -21,11 +21,12 @@ do
     position = position,
   }
   function create_radar(owner_data, index)
+    local owner_position = owner_data.owner.position
     create_radar_data.name = "RadarEquipment-radar-"..owner_data.chunk_range
     create_radar_data.force = owner_data.force
     local distance = get_distance_to_owner(owner_data)
-    position.x = distance * x_index_sign_lookup[index]
-    position.y = distance * y_index_sign_lookup[index]
+    position.x = owner_position.x + distance * x_index_sign_lookup[index]
+    position.y = owner_position.y + distance * y_index_sign_lookup[index]
     local entity = owner_data.surface.create_entity(create_radar_data)
     if not entity then
       error("--TODO: scream! the radar couldn't get created.")
@@ -47,8 +48,8 @@ local function teleport_radars(owner_data)
     return
   end
 
-  local diff_x = prev_x - pos_x
-  local diff_y = prev_y - pos_y
+  local diff_x = pos_x - prev_x
+  local diff_y = pos_y - prev_y
   owner_data.prev_x = pos_x
   owner_data.prev_y = pos_y
 
@@ -64,19 +65,22 @@ end
 
 local function update_portable_radar_count(owner_data, portable_radar_count)
   if owner_data.portable_radar_count ~= portable_radar_count then
-    if portable_radar_count == 0 then
+    if portable_radar_count == nil then
       -- TODO: cleanup and remove the owner data
       return
     end
 
     owner_data.portable_radar_count = portable_radar_count
     local target_chunk_range = owner_data.base_chunk_range + portable_radar_count * 2
+    owner_data.target_chunk_range = target_chunk_range
     local chunk_range = range_lookup[target_chunk_range]
     if not chunk_range then
       chunk_range = range_util.highest_chunk_range
       error("--TODO: not implemented. huge target_chunk_range that needs more than 4 radars.")
     else
       if owner_data.chunk_range ~= chunk_range then
+        owner_data.chunk_range = chunk_range
+
         -- delete existing radars
         local radars = owner_data.radars
         if radars then
@@ -100,6 +104,10 @@ local function update_portable_radar_count(owner_data, portable_radar_count)
         teleport_radars(owner_data)
       end
     end
+
+    return true
+  else
+    return false
   end
 end
 
@@ -120,7 +128,9 @@ local function check_equipment(owner_data)
 
   local contents = grid.get_contents()
   local portable_radar_count = contents["RadarEquipment-portable-radar"]
-  update_portable_radar_count(owner_data, portable_radar_count)
+  if not update_portable_radar_count(owner_data, portable_radar_count) then
+    teleport_radars(owner_data)
+  end
 end
 
 return {
