@@ -3,6 +3,8 @@ local radar_count = 7
 
 local ranges = {}
 local range_lookup = {}
+local highest_radar_range
+local highest_chunk_range
 
 do
   local radar_range = 0
@@ -22,9 +24,13 @@ do
       end
     end
   end
+  highest_radar_range = radar_range / 2 + 1
+  highest_chunk_range = chunk_range / 2 - 1
 end
 
 return {
   ranges = ranges,
   range_lookup = range_lookup,
+  highest_radar_range = highest_radar_range,
+  highest_chunk_range = highest_chunk_range,
 }
