@@ -16,12 +16,8 @@ do
     ranges[radar_range] = current_chunk_range
     radar_range = current_chunk_range
 
-    if i == radar_count then
-      range_lookup[current_chunk_range] = radar_range
-    else
-      for i_chunk_range = current_chunk_range, chunk_range - 2 do
-        range_lookup[i_chunk_range] = radar_range
-      end
+    for i_chunk_range = current_chunk_range, chunk_range - 2 do
+      range_lookup[i_chunk_range] = radar_range
     end
   end
   highest_radar_range = radar_range / 2 + 1
