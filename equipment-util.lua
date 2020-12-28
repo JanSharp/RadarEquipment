@@ -2,8 +2,36 @@
 local range_util = require("range-util")
 local range_lookup = range_util.range_lookup
 
-local function create_radar()
-  -- TODO: impl
+local x_index_sign_lookup = {-1, 1, -1, 1}
+local y_index_sign_lookup = {-1, -1, 1, 1}
+
+local function get_distance_to_owner(owner_data)
+  local chunk_range = owner_data.chunk_range
+  local target_chunk_range = owner_data.target_chunk_range
+  local chunk_dist = (target_chunk_range - chunk_range) / 2
+  return chunk_dist * 32
+end
+
+local create_radar
+do
+  -- TODO: optimize to cache tables for every chunk_range
+  local position = {}
+  local create_radar_data = {
+    create_build_effect_smoke = false,
+    position = position,
+  }
+  function create_radar(owner_data, index)
+    create_radar_data.name = "RadarEquipment-radar-"..owner_data.chunk_range
+    create_radar_data.force = owner_data.force
+    local distance = get_distance_to_owner(owner_data)
+    position.x = distance * x_index_sign_lookup[index]
+    position.y = distance * y_index_sign_lookup[index]
+    local entity = owner_data.surface.create_entity(create_radar_data)
+    if not entity then
+      error("--TODO: scream! the radar couldn't get created.")
+    end
+    return entity
+  end
 end
 
 local function teleport_radars(owner_data)
@@ -25,11 +53,11 @@ local function teleport_radars(owner_data)
   owner_data.prev_y = pos_y
 
   local radars = owner_data.radars
-  for key, radar in next, radars do
+  for index, radar in next, radars do
     if radar.valid then
       radar.teleport(diff_x, diff_y)
     else
-      radars[key] = create_radar()
+      radars[index] = create_radar(owner_data, index)
     end
   end
 end
@@ -46,7 +74,7 @@ local function update_portable_radar_count(owner_data, portable_radar_count)
     local chunk_range = range_lookup[target_chunk_range]
     if not chunk_range then
       chunk_range = range_util.highest_chunk_range
-      error("--TODO: not implemented. huge target_chunk_range that needs more than 4 radars")
+      error("--TODO: not implemented. huge target_chunk_range that needs more than 4 radars.")
     else
       if owner_data.chunk_range ~= chunk_range then
         -- delete existing radars
@@ -63,7 +91,10 @@ local function update_portable_radar_count(owner_data, portable_radar_count)
           end
         end
 
-        -- TODO: create new radars
+        -- create new radars
+        for i = 1, 4 do
+          radars[i] = create_radar(owner_data, i)
+        end
       else
         -- TODO: change position of all radars. best would be with absolute teleports
         teleport_radars(owner_data)
