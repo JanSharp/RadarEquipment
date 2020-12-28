@@ -42,13 +42,13 @@ local function update_portable_radar_count(owner_data, portable_radar_count)
     end
 
     owner_data.portable_radar_count = portable_radar_count
-    local target_chunk_range = owner_data.base_radar_range + portable_radar_count
-    local radar_range = range_lookup[target_chunk_range]
-    if not radar_range then
-      radar_range = range_util.highest_radar_range
+    local target_chunk_range = owner_data.base_chunk_range + portable_radar_count
+    local chunk_range = range_lookup[target_chunk_range]
+    if not chunk_range then
+      chunk_range = range_util.highest_chunk_range
       error("--TODO: not implemented. huge target_chunk_range that needs more than 4 radars")
     else
-      if owner_data.radar_range ~= radar_range then
+      if owner_data.chunk_range ~= chunk_range then
         -- delete existing radars
         local radars = owner_data.radars
         if radars then
