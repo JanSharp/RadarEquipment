@@ -1,5 +1,5 @@
 
-local ranges = require("range-utils").ranges
+local ranges = require("range-util").ranges
 
 local data = data
 local next = next
