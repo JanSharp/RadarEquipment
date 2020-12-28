@@ -42,7 +42,7 @@ local function update_portable_radar_count(owner_data, portable_radar_count)
     end
 
     owner_data.portable_radar_count = portable_radar_count
-    local target_chunk_range = owner_data.base_chunk_range + portable_radar_count
+    local target_chunk_range = owner_data.base_chunk_range + portable_radar_count * 2
     local chunk_range = range_lookup[target_chunk_range]
     if not chunk_range then
       chunk_range = range_util.highest_chunk_range
