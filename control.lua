@@ -1,7 +1,10 @@
 
 local equipment_util = require("equipment-util")
+local grid_lookup_util = require("grid-lookup-util")
 
 local events = defines.events
+local script = script
+local on_event = script.on_event
 
 local script_data
 local owners
@@ -20,7 +23,7 @@ local owners
 --   -- TODO: cleanup radars
 -- end
 
-script.on_event(events.on_player_created, function(event)
+on_event(events.on_player_created, function(event)
   -- add_player(game.get_player(event.player_index))
 
   local player = game.get_player(event.player_index)
@@ -51,28 +54,49 @@ script.on_event(events.on_player_created, function(event)
   }
   owners[#owners+1] = owner_data
 
+  grid_lookup_util.add_owner_data(owner_data)
   equipment_util.check_equipment(owner_data)
 end)
 
-script.on_event(events.on_tick, function(event)
-  for _, owner_data in next, owners do
-    equipment_util.check_equipment(owner_data)
+-- on_event(events.on_tick, function(event)
+--   for _, owner_data in next, owners do
+--     equipment_util.check_equipment(owner_data)
+--   end
+-- end)
+
+on_event(events.on_player_placed_equipment, function(event)
+  if event.equipment.name == "RadarEquipment-portable-radar" then
+    equipment_util.on_equipment_grid_updated(event.grid)
   end
 end)
+
+on_event(events.on_player_removed_equipment, function(event)
+  if event.equipment.name == "RadarEquipment-portable-radar" then
+    equipment_util.on_equipment_grid_updated(event.grid)
+  end
+end)
+
+local function setup_other_files()
+  grid_lookup_util.setup()
+end
 
 script.on_init(function()
   owners = {}
   script_data = {
     players = owners,
+    grid_lookup = {},
   }
   global.script_data = script_data
 
   -- for _, player in pairs(game.players) do
   --   add_player(player)
   -- end
+  setup_other_files()
 end)
 
 script.on_load(function()
   script_data = global.script_data
   owners = script_data.players
+
+  setup_other_files()
 end)

@@ -1,9 +1,13 @@
 
+local grid_lookup_util = require("grid-lookup-util")
+
 local range_util = require("range-util")
 local range_lookup = range_util.range_lookup
 
 local x_index_sign_lookup = {-1, 1, -1, 1}
 local y_index_sign_lookup = {-1, -1, 1, 1}
+
+local script_data
 
 local function get_distance_to_owner(owner_data)
   local chunk_range = owner_data.chunk_range
@@ -133,6 +137,16 @@ local function check_equipment(owner_data)
   end
 end
 
+local function on_equipment_grid_updated(grid)
+  local owner_data = grid_lookup_util.get_owner_data(grid)
+  if owner_data then
+    check_equipment(owner_data)
+  else
+    error("--TODO: create new owner data after a grid got chagned and no existing data was found")
+  end
+end
+
 return {
+  on_equipment_grid_updated = on_equipment_grid_updated,
   check_equipment = check_equipment,
 }
