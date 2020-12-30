@@ -31,3 +31,14 @@ anyway, with too much speed they tend to overshoot their target, causing them to
 but miss again so it's a long period of bouncing back and forth.
 and since the player can teleport, or move really quickly because of trains, and trains
 can also have equipment, this simply won't work.
+
+
+whenever equipment changes in some way
+create or delete owner_data depeding on the circumstance
+update radar entities
+
+periodically check the power level of all portable radar equipments,
+if one looses power or one gains power,
+update radar entities
+
+periodically teleport radars to the correct offset to the owner entity

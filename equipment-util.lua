@@ -159,6 +159,133 @@ local function on_equipment_grid_updated(grid)
   end
 end
 
+
+--[[
+
+sudo code:
+
+function create_owner_data()
+end
+
+function delete_owner_data()
+end
+
+
+function get_target_chunk_range()
+  calculate target_chunk_range
+  return result
+end
+
+function get_radar_range()
+  calculate new radar_range
+  return result
+end
+
+function get_active_portable_radar_count()
+  set result to 0
+  for portable_radar in all equipments do
+    if valid then
+      if it has enough power then
+        increment active count
+      end
+    else
+      remove_portable_radar()
+    end
+  end
+  return result
+end
+
+
+function create_radars()
+  create all radars needed to cover the target_chunk_range
+  at the correct offsets to the owner
+  set them all to destructible = false
+end
+
+function create_radar()
+  very much a duplicate of create_radars()
+  and since it is so similar, it is going to do the same thing,
+  but actually take a "scope" parameter,
+  which when nil will be supplied with all the reused data needed
+  for creating radars
+end
+
+function delete_radars()
+  delete all radars
+end
+
+function add_portable_radar()
+  add the given portalbe radar from owner_data
+end
+
+function remove_portable_radar()
+  remove the given portalbe radar from owner_data
+end
+
+
+function update_radar_offsets()
+  teleports existing radars to the correct offset
+  to properly cover target_chunk_range
+end
+
+function update_radars()
+  calculate the distance the owner moved
+  using prev_x and prev_y
+  if it is 0 then return end
+
+  update prev_x and prev_y
+  for radar in all radars do
+    if valid then
+      radar.teleport()
+    else
+      create_radar()
+    end
+  end
+end
+
+function update_target_chunk_range()
+  get_target_chunk_range()
+  if it is the same then return end
+
+  get_radar_range()
+  if it is different then
+    set it on owner_data
+    delete_radars()
+    create_radars()
+  end
+  update_radar_offsets()
+end
+
+function update_active_portable_radar_count()
+  get_active_portable_radar_count()
+  if it is the same then return end
+
+  set it on owner_data
+  update_target_chunk_range()
+end
+
+
+
+-- only needed if i want to supoort someone adding equipments to the grid
+-- with a script. but it most likely wouldn't actually help anyway, because
+-- it would have to find the grid in the first place
+-- which would most likely require keeping track of every grid in existance
+-- and that's dumb
+-- actually nvm, it's needed when creating the owner_data... right?
+-- no. create would not want other update functions to be called.
+-- a create function should never call update functions
+function update_portable_radar_count()
+  get all equipments from the grid
+  find all portable radar ones
+  overwrite the existing list with the new one
+  if the new count is different then
+    update_active_portable_rdarar_count()
+  end
+end
+
+]]
+
+
 return {
   on_equipment_grid_updated = on_equipment_grid_updated,
   check_equipment = check_equipment,
