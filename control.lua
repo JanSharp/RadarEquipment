@@ -6,8 +6,10 @@ local events = defines.events
 local script = script
 local on_event = script.on_event
 
+---@type ScriptData
 local script_data
 local owners
+local grid_lookup
 
 -- local function add_player(player)
 --   local owner_data = {
@@ -42,6 +44,7 @@ on_event(events.on_player_created, function(event)
   player.cursor_stack.set_stack{name = "spidertron-remote"}
   player.cursor_stack.connected_entity = spidertron
 
+  ---@type OwnerData
   local owner_data = {
     owner = spidertron,
     surface = spidertron.surface,
@@ -83,7 +86,8 @@ end
 script.on_init(function()
   owners = {}
   script_data = {
-    players = owners,
+    owners = owners,
+    ---@type GridLookups
     grid_lookup = {},
   }
   global.script_data = script_data
@@ -96,7 +100,7 @@ end)
 
 script.on_load(function()
   script_data = global.script_data
-  owners = script_data.players
+  owners = script_data.owners
 
   setup_other_files()
 end)

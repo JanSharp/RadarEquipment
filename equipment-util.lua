@@ -9,6 +9,9 @@ local y_index_sign_lookup = {-1, -1, 1, 1}
 
 local script_data
 
+---@param owner_data OwnerData
+---@return integer @ the amount of tiles the radars need to be away from the owner
+--- for the corrent target_chunk_range
 local function get_distance_to_owner(owner_data)
   local chunk_range = owner_data.chunk_range
   local target_chunk_range = owner_data.target_chunk_range
@@ -19,11 +22,15 @@ end
 local create_radar
 do
   -- TODO: optimize to cache tables for every chunk_range
+  ---@type Position
   local position = {}
   local create_radar_data = {
     create_build_effect_smoke = false,
     position = position,
   }
+  ---@param owner_data OwnerData
+  ---@param index integer @index in radars array
+  ---@return LuaEntity @ the created radar entity
   function create_radar(owner_data, index)
     local owner_position = owner_data.owner.position
     create_radar_data.name = "RadarEquipment-radar-"..owner_data.chunk_range
@@ -39,6 +46,7 @@ do
   end
 end
 
+---@param owner_data OwnerData
 local function teleport_radars(owner_data)
   local owner = owner_data.owner
   local owner_position = owner.position
@@ -67,6 +75,9 @@ local function teleport_radars(owner_data)
   end
 end
 
+---@param owner_data OwnerData
+---@param portable_radar_count integer
+---@return boolean @ did it udpate radar positions?
 local function update_portable_radar_count(owner_data, portable_radar_count)
   if owner_data.portable_radar_count ~= portable_radar_count then
     if portable_radar_count == nil then
@@ -115,6 +126,7 @@ local function update_portable_radar_count(owner_data, portable_radar_count)
   end
 end
 
+---@param owner_data OwnerData
 local function check_equipment(owner_data)
   local owner = owner_data.owner
   if not owner.valid then
@@ -137,6 +149,7 @@ local function check_equipment(owner_data)
   end
 end
 
+---@param grid LuaEquipmentGrid
 local function on_equipment_grid_updated(grid)
   local owner_data = grid_lookup_util.get_owner_data(grid)
   if owner_data then

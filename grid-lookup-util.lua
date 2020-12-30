@@ -2,6 +2,7 @@
 local script_data
 local grid_lookup
 
+---@param owner_data OwnerData
 local function add_owner_data(owner_data)
   local grid = owner_data.grid
   local name = grid.prototype.name
@@ -13,6 +14,7 @@ local function add_owner_data(owner_data)
   lookup[grid] = owner_data
 end
 
+---@param owner_data OwnerData
 local function remove_owner_data(owner_data)
   local grid = owner_data.grid
   local name = grid.prototype.name
@@ -23,6 +25,8 @@ local function remove_owner_data(owner_data)
   end
 end
 
+---@param grid LuaEquipmentGrid
+---@return OwnerData|nil
 local function get_owner_data(grid)
   local lookup = grid_lookup[grid.prototype.name]
   for other_grid, owner_data in next, lookup do
