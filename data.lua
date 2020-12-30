@@ -32,10 +32,6 @@ local function create_radar(radar_range, name_postfix)
     selectable_in_game = false,
 
     create_ghost_on_death = false,
-    -- healing_per_tick = 0,
-    -- max_health = 1,
-    -- TODO: set resitances to everything? it can't really be hit though, can it
-    -- it seems to die to the flamethrower right now and i'm not sure why exactly
 
     energy_per_nearby_scan = "1J",
     energy_per_sector = "1J",
