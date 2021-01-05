@@ -67,12 +67,15 @@ data:extend{
     placed_as_equipment_result = "RadarEquipment-portable-radar",
   },
   {
-    type = "movement-bonus-equipment",
+    type = "energy-shield-equipment",
     name = "RadarEquipment-portable-radar",
 
     categories = {"armor"},
     energy_source = {
-      type = "void",
+      type = "electric",
+      buffer_capacity = "400kJ",
+      input_flow_limit = "80kW",
+      drain = "40kW",
       usage_priority = "secondary-input",
     },
     shape = {
@@ -85,7 +88,7 @@ data:extend{
       size = 1,
     },
 
-    energy_consumption = "40kW",
-    movement_bonus = 0,
+    energy_per_shield = "40kJ",
+    max_shield_value = 0,
   },
 }
