@@ -57,7 +57,7 @@ local function remove_portable_radar(owner_data, portable_radar)
   owner_data.portable_radar_count = owner_data.portable_radar_count - 1
   local portable_radars = owner_data.portable_radars
   if portable_radars[portable_radar] then
-    portable_radar[portable_radar] = nil
+    portable_radars[portable_radar] = nil
   elseif portable_radar.valid then
     for other_portable_radar in next, portable_radars do
       if portable_radar == other_portable_radar then
