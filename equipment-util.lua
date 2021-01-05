@@ -165,9 +165,15 @@ end
 sudo code:
 
 function create_owner_data()
+  store get_portable_radars()
+  store get_active_portable_radar_count()
+  store get_target_chunk_range()
+  store get_radar_range()
+  create_radars()
 end
 
 function delete_owner_data()
+  delete_radars()
 end
 
 
@@ -179,6 +185,11 @@ end
 function get_radar_range()
   calculate new radar_range
   return result
+end
+
+function get_portable_radars()
+  get all equipments from the grid
+  reutn all portable radar ones
 end
 
 function get_active_portable_radar_count()
@@ -252,8 +263,9 @@ function update_target_chunk_range()
     set it on owner_data
     delete_radars()
     create_radars()
+  else
+    update_radar_offsets()
   end
-  update_radar_offsets()
 end
 
 function update_active_portable_radar_count()
@@ -275,12 +287,9 @@ end
 -- no. create would not want other update functions to be called.
 -- a create function should never call update functions
 function update_portable_radar_count()
-  get all equipments from the grid
-  find all portable radar ones
+  get_portable_radars()
   overwrite the existing list with the new one
-  if the new count is different then
-    update_active_portable_rdarar_count()
-  end
+  update_active_portable_radar_count()
 end
 
 ]]
