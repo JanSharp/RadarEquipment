@@ -88,7 +88,7 @@ data:extend{
       size = 1,
     },
 
-    energy_per_shield = "40kJ",
+    energy_per_shield = "80kJ",
     max_shield_value = 0,
   },
 }
