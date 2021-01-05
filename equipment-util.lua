@@ -7,158 +7,130 @@ local range_lookup = range_util.range_lookup
 local x_index_sign_lookup = {-1, 1, -1, 1}
 local y_index_sign_lookup = {-1, -1, 1, 1}
 
-local script_data
 
 ---@param owner_data OwnerData
----@return integer @ the amount of tiles the radars need to be away from the owner
---- for the corrent target_chunk_range
-local function get_distance_to_owner(owner_data)
-  local chunk_range = owner_data.chunk_range
-  local target_chunk_range = owner_data.target_chunk_range
-  local chunk_dist = (target_chunk_range - chunk_range) / 2
-  return chunk_dist * 32
-end
-
-local create_radar
-do
-  -- TODO: optimize to cache tables for every chunk_range
-  ---@type Position
-  local position = {}
-  local create_radar_data = {
-    create_build_effect_smoke = false,
-    position = position,
-  }
-  ---@param owner_data OwnerData
-  ---@param index integer @index in radars array
-  ---@return LuaEntity @ the created radar entity
-  function create_radar(owner_data, index)
-    local owner_position = owner_data.owner.position
-    create_radar_data.name = "RadarEquipment-radar-"..owner_data.chunk_range
-    create_radar_data.force = owner_data.force
-    local distance = get_distance_to_owner(owner_data)
-    position.x = owner_position.x + distance * x_index_sign_lookup[index]
-    position.y = owner_position.y + distance * y_index_sign_lookup[index]
-    local entity = owner_data.surface.create_entity(create_radar_data)
-    if not entity then
-      error("--TODO: scream! the radar couldn't get created.")
-    end
-    return entity
-  end
+---@return integer @ target_chunk_range
+local function get_target_chunk_range(owner_data)
+  return owner_data.base_chunk_range + owner_data.active_portable_radar_count * 2
 end
 
 ---@param owner_data OwnerData
-local function teleport_radars(owner_data)
-  local owner = owner_data.owner
-  local owner_position = owner.position
-
-  local pos_x = owner_position.x
-  local pos_y = owner_position.y
-  local prev_x = owner_data.prev_x
-  local prev_y = owner_data.prev_y
-
-  if pos_x == prev_x and pos_y == prev_y then
-    return
+---@return integer @ chunk_range
+local function get_chunk_range(owner_data)
+  local chunk_range = range_lookup[owner_data.target_chunk_range]
+  if not chunk_range then
+    chunk_range = range_util.highest_chunk_range
+    error("--TODO: not implemented. huge target_chunk_range that needs more than 4 radars.")
+  else
   end
-
-  local diff_x = pos_x - prev_x
-  local diff_y = pos_y - prev_y
-  owner_data.prev_x = pos_x
-  owner_data.prev_y = pos_y
-
-  local radars = owner_data.radars
-  for index, radar in next, radars do
-    if radar.valid then
-      radar.teleport(diff_x, diff_y)
-    else
-      radars[index] = create_radar(owner_data, index)
-    end
-  end
+  return chunk_range
 end
 
 ---@param owner_data OwnerData
----@param portable_radar_count integer
----@return boolean @ did it udpate radar positions?
-local function update_portable_radar_count(owner_data, portable_radar_count)
-  if owner_data.portable_radar_count ~= portable_radar_count then
-    if portable_radar_count == nil then
-      -- TODO: cleanup and remove the owner data
-      return
+---@return table<LuaEquipment, true> @ portable_radars
+---@return integer @ portable_radar_count
+local function get_portable_radars(owner_data)
+  local portable_radar_count = 0
+  local portable_radars = {}
+  for _, equipment in next, owner_data.grid.equipment do
+    if equipment.name == "RadarEquipment-portable-radar" then
+      portable_radar_count = portable_radar_count + 1
+      portable_radars[equipment] = true
     end
+  end
+  return portable_radars, portable_radar_count
+end
 
-    owner_data.portable_radar_count = portable_radar_count
-    local target_chunk_range = owner_data.base_chunk_range + portable_radar_count * 2
-    owner_data.target_chunk_range = target_chunk_range
-    local chunk_range = range_lookup[target_chunk_range]
-    if not chunk_range then
-      chunk_range = range_util.highest_chunk_range
-      error("--TODO: not implemented. huge target_chunk_range that needs more than 4 radars.")
-    else
-      if owner_data.chunk_range ~= chunk_range then
-        owner_data.chunk_range = chunk_range
+--- updates portable_radar_count as well
+---@param owner_data OwnerData
+---@param portable_radar LuaEquipment
+local function add_portable_radar(owner_data, portable_radar)
+  owner_data.portable_radar_count = owner_data.portable_radar_count + 1
+  owner_data.portable_radars[portable_radar] = true
+end
 
-        -- delete existing radars
-        local radars = owner_data.radars
-        if radars then
-          local key, radar = next(radars)
-          while key do
-            local next_key, next_radar = next(radars, key)
-            radars[key] = nil
-            if radar.valid then
-              radar.destroy()
-            end
-            key, radar = next_key, next_radar
-          end
-        end
-
-        -- create new radars
-        for i = 1, 4 do
-          radars[i] = create_radar(owner_data, i)
-        end
-      else
-        -- TODO: change position of all radars. best would be with absolute teleports
-        teleport_radars(owner_data)
+--- updates portable_radar_count as well
+---@param owner_data OwnerData
+---@param portable_radar LuaEquipment
+local function remove_portable_radar(owner_data, portable_radar)
+  -- remove the given portalbe radar from owner_data
+  owner_data.portable_radar_count = owner_data.portable_radar_count - 1
+  local portable_radars = owner_data.portable_radars
+  if portable_radars[portable_radar] then
+    portable_radar[portable_radar] = nil
+  elseif portable_radar.valid then
+    for other_portable_radar in next, portable_radars do
+      if portable_radar == other_portable_radar then
+        portable_radars[portable_radar] = nil
+        break
       end
     end
-
-    return true
   else
-    return false
+    -- this could instead simply discard of the entire list and recreate it from all equipments
+    -- maybe do that but with a warn? no it should simply not be allowed, preiod
+    error("Unable to remove unknown invalid portable_radar equipment from owner_data.")
   end
 end
 
 ---@param owner_data OwnerData
-local function check_equipment(owner_data)
-  local owner = owner_data.owner
-  if not owner.valid then
-    -- TODO: cleanup and remove the owner data
-    return
-  end
-  local grid = owner_data.grid
-  if not grid.valid then
-    grid = owner.grid
-    if not grid then
-      -- TODO: cleanup and remove the owner data
-      return
+---@return integer @ active_portable_radar_count
+local function get_active_portable_radar_count(owner_data)
+  local active_portable_radar_count = 0
+  for portable_radar in next, owner_data.portable_radars do
+    if portable_radar.valid then
+      if portable_radar.energy > 1000 then
+        active_portable_radar_count = active_portable_radar_count + 1
+      end
+    else
+      remove_portable_radar(owner_data, portable_radar)
     end
   end
-
-  local contents = grid.get_contents()
-  local portable_radar_count = contents["RadarEquipment-portable-radar"]
-  if not update_portable_radar_count(owner_data, portable_radar_count) then
-    teleport_radars(owner_data)
-  end
+  return active_portable_radar_count
 end
 
----@param grid LuaEquipmentGrid
-local function on_equipment_grid_updated(grid)
-  local owner_data = grid_lookup_util.get_owner_data(grid)
-  if owner_data then
-    check_equipment(owner_data)
-  else
-    error("--TODO: create new owner data after a grid got chagned and no existing data was found")
-  end
+---@param owner LuaEntity
+---@return OwnerData
+local function create_owner_data(owner)
+  ---@type Position
+  local owner_position = owner.position
+  ---@type OwnerData
+  local owner_data = {
+    owner = owner,
+    surface = owner.surface,
+    force = owner.force,
+    grid = owner.grid,
+    portable_radars = "nil",
+    portable_radar_count = "nil",
+    active_portable_radar_count = "nil",
+    radars = {},
+    prev_x = owner_position.x,
+    prev_y = owner_position.y,
+    base_chunk_range = 5, -- TODO: properly evaluate base_chunk_range
+    target_chunk_range = "nil",
+    chunk_range = "nil",
+  }
+  owner_data.portable_radars, owner_data.portable_radar_count = get_portable_radars(owner_data)
+  owner_data.active_portable_radar_count = get_active_portable_radar_count(owner_data)
+  owner_data.target_chunk_range = get_target_chunk_range(owner_data)
+  owner_data.chunk_range = get_chunk_range(owner_data)
+  -- create_radars(owner_data)
+  return owner_data
 end
 
+---@param owner_data OwnerData
+local function delete_owner_data(owner_data)
+  -- delete_radars(owner_data)
+end
+
+
+return {
+  create_owner_data = create_owner_data,
+  delete_owner_data = delete_owner_data,
+  -- on_equipment_grid_updated = on_equipment_grid_updated,
+  -- check_equipment = check_equipment,
+
+  get_active_portable_radar_count = get_active_portable_radar_count,
+}
 
 --[[
 
@@ -168,7 +140,7 @@ function create_owner_data()
   store get_portable_radars()
   store get_active_portable_radar_count()
   store get_target_chunk_range()
-  store get_radar_range()
+  store get_chunk_range()
   create_radars()
 end
 
@@ -182,14 +154,14 @@ function get_target_chunk_range()
   return result
 end
 
-function get_radar_range()
-  calculate new radar_range
+function get_chunk_range()
+  calculate new chunk_range
   return result
 end
 
 function get_portable_radars()
   get all equipments from the grid
-  reutn all portable radar ones
+  return all portable radar ones
 end
 
 function get_active_portable_radar_count()
@@ -258,7 +230,7 @@ function update_target_chunk_range()
   get_target_chunk_range()
   if it is the same then return end
 
-  get_radar_range()
+  get_chunk_range()
   if it is different then
     set it on owner_data
     delete_radars()
@@ -293,9 +265,3 @@ function update_portable_radar_count()
 end
 
 ]]
-
-
-return {
-  on_equipment_grid_updated = on_equipment_grid_updated,
-  check_equipment = check_equipment,
-}
