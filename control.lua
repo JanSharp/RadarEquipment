@@ -35,7 +35,7 @@ on_event(events.on_player_created, function(event)
     force = player.force,
   }
   local grid = spidertron.grid
-  grid.put{name = "RadarEquipment-portable-radar"}
+  local test = grid.put{name = "RadarEquipment-portable-radar"}
   grid.put{name = "RadarEquipment-portable-radar"}
   grid.put{name = "RadarEquipment-portable-radar"}
   grid.put{name = "RadarEquipment-portable-radar"}
@@ -43,6 +43,7 @@ on_event(events.on_player_created, function(event)
   grid.put{name = "RadarEquipment-portable-radar"}
   player.cursor_stack.set_stack{name = "spidertron-remote"}
   player.cursor_stack.connected_entity = spidertron
+  player.insert{name = "fusion-reactor-equipment", count = 20}
 
   local owner_data = equipment_util.create_owner_data(spidertron)
 
@@ -77,13 +78,13 @@ end)
 
 on_event(events.on_player_placed_equipment, function(event)
   if event.equipment.name == "RadarEquipment-portable-radar" then
-    equipment_util.on_equipment_grid_updated(event.grid)
+    -- equipment_util.on_equipment_grid_updated(event.grid)
   end
 end)
 
 on_event(events.on_player_removed_equipment, function(event)
   if event.equipment.name == "RadarEquipment-portable-radar" then
-    equipment_util.on_equipment_grid_updated(event.grid)
+    -- equipment_util.on_equipment_grid_updated(event.grid)
   end
 end)
 
