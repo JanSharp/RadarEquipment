@@ -1,4 +1,7 @@
 
+---@alias true boolean
+---@alias false boolean
+
 ---@class ScriptData
 ---@field owners OwnerData[]
 ---@field grid_lookup GridLookups
